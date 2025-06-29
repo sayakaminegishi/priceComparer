@@ -1,3 +1,4 @@
+// Import necessary components
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -12,18 +13,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator(); //creates a stack navigator instance
 
-// serpAPI key
+// the API key for serpAPI to fetch Google Shopping results
 const SERP_API_KEY = '1d48eec5f044f15ea6500b824bde84322fa6029dff835e1d2f6f82668404e5e0';
 
+// makes user input a search item and navigate to results
+// navitation is used to switch screens
 function SearchScreen({ navigation }) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(''); //tracks the user's search input
 
   const handleSearch = async () => {
-    if (!query.trim()) return;
-    await AsyncStorage.setItem('lastQuery', query);
-    navigation.navigate('Results', { query });
+    if (!query.trim()) return;  //ignore empty input
+    await AsyncStorage.setItem('lastQuery', query); //save query to async storage
+    navigation.navigate('Results', { query }); //go to results screen, passing the query as a parameter
   };
 
   useEffect(() => {
@@ -31,9 +34,10 @@ function SearchScreen({ navigation }) {
       const last = await AsyncStorage.getItem('lastQuery');
       if (last) setQuery(last);
     };
-    loadLastQuery();
+    loadLastQuery(); //pre-fill the search box with the last searched item if it exists
   }, []);
 
+  // style text input and serach button
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Enter item name:</Text>
@@ -48,12 +52,15 @@ function SearchScreen({ navigation }) {
   );
 }
 
+// Fetch and display product results 
 function ResultsScreen({ route }) {
+  //first retrieve the query passed from the search screen
   const { query } = route.params;
   const [items, setItems] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
+// sends a GET request to SerpAPI with the query (item name), parses JSON to extract the top 10 matching reuslts, and handle errors.
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -89,9 +96,11 @@ function ResultsScreen({ route }) {
     fetchItems();
   }, [query]);
 
+  //loading and error messages
   if (loading) return <Text style={styles.loading}>Loading...</Text>;
   if (error) return <Text style={styles.error}>{error}</Text>;
 
+  //display fetched products in a scrollable list using FlatList
   return (
     <FlatList
       data={items}
@@ -108,6 +117,7 @@ function ResultsScreen({ route }) {
   );
 }
 
+// sets up navitation between the Search and Results screens via React Navigation
 export default function App() {
   return (
     <NavigationContainer>
@@ -119,6 +129,7 @@ export default function App() {
   );
 }
 
+//styling
 const styles = StyleSheet.create({
   container: { padding: 20, flex: 1 },
   title: { fontSize: 18, marginBottom: 10 },
